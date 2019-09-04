@@ -16,8 +16,8 @@ a2vhost 1.0.1 (c) 2019 Hein Thanth <br><br>
 
 ## Installation
 ``` bash
-$ wget https://github.com/heinthanth/a2vhost/raw/master/dist/a2vhost-1.0.0_amd64.deb
-$ sudo apt-get install ./a2vhost-1.0.0_amd64.deb
+$ wget https://github.com/heinthanth/a2vhost/raw/master/dist/a2vhost-1.0.2_amd64.deb
+$ sudo apt-get install ./a2vhost-1.0.2_amd64.deb
 ```
 To Uninstall, simply
 ``` bash
