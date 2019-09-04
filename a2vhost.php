@@ -30,6 +30,7 @@ class vhost {
         if (!file_exists($this->root)) {
             mkdir($this->root, 0777, true);
         }
+        shell_exec("sudo chmod -R 777 $this->root");
     }
     public function gen() {
         $this->makeRoot();
