@@ -224,8 +224,8 @@ function confgen($domain, $root, $ssl = false) {
                 #   /usr/share/doc/apache2/README.Debian.gz for more info.
                 #   If both key and certificate are stored in the same file, only the
                 #   SSLCertificateFile directive is needed.
-                SSLCertificateFile	/etc/ssl/certs/ssl-cert-snakeoil.pem
-                SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+                SSLCertificateFile	/etc/a2vhost/ssl/certs/$domain.crt
+                SSLCertificateKeyFile /etc/a2vhost/ssl/keys/$domain.key
         
                 #   Server Certificate Chain:
                 #   Point SSLCertificateChainFile at a file containing the
