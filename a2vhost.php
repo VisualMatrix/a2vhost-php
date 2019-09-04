@@ -196,7 +196,7 @@ function confgen($domain, $root, $ssl = false) {
                 <Directory $root>
                     Options Indexes FollowSymLinks Includes ExecCGI
                     AllowOverride All
-                    Required all granted
+                    Require all granted
                 </Directory>
         
                 # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
@@ -347,7 +347,7 @@ function confgen($domain, $root, $ssl = false) {
             <Directory $root>
                 Options Indexes FollowSymLinks Includes ExecCGI
                 AllowOverride All
-                Required all granted
+                Require all granted
             </Directory>
 
             # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
@@ -381,7 +381,7 @@ function showBanner() {
   /_/    \_\____|  \/   |_|  |_|\___/|___/\__|
                                             '.PHP_EOL;
     echo '  Virtual Host Generator for Apache2'.PHP_EOL;
-    echo '  a2vhost 1.0.1 - (c) Hein Thanth'.PHP_EOL;
+    echo '  a2vhost 1.0.2 - (c) Hein Thanth'.PHP_EOL;
     echo '  https://github.com/heinthanth/a2vhost'.PHP_EOL;
     echo PHP_EOL;
 }
