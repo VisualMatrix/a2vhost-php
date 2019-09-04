@@ -14,6 +14,16 @@ a2vhost 1.0.1 (c) 2019 Hein Thanth <br><br>
 * License under MIT
 * Developed in PHP && bash
 
+## Installation
+``` bash
+$ wget https://github.com/heinthanth/a2vhost/raw/master/dist/a2vhost-1.0.0_amd64.deb
+$ sudo apt-get install ./a2vhost-1.0.0_amd64.deb
+```
+To Uninstall, simply
+``` bash
+$ sudo apt-get autoremove --purge a2vhost
+```
+
 ## Usage
 Create VirtualHost
 ``` bash
