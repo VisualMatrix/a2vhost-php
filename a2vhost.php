@@ -1,6 +1,22 @@
 #!/usr/bin/env php
 <?php
 
+if(posix_getuid() != 0) {
+    echo "  Please run as root or sudo!".PHP_EOL;
+    help();
+    exit(0);
+} else {
+    if (!file_exists("/etc/a2vhost/")) {
+        mkdir("/etc/a2vhost");
+        mkdir("/etc/a2vhost/sites-available");
+        mkdir("/etc/a2vhost/sites-enabled");
+        mkdir("/etc/a2vhost/ssl/");
+        mkdir("/etc/a2vhost/ssl/certs");
+        mkdir("/etc/a2vhost/ssl/keys");
+    }
+    main($argv);
+}
+
 class vhost {
     var $ssl;
     var $root;
@@ -19,28 +35,61 @@ class vhost {
         $this->makeRoot();
         if(in_array($this->ssl, ["true", "True"])) {
             sslgen($this->domain);
+            echo "Self-signed SSL generated successfully. Enabling mod_ssl ... and Generating Configurations".PHP_EOL;
+            shell_exec("a2enmod ssl");
             confgen($this->domain, realpath($this->root), true);
-        } else {
-            confgen($this->domain, realpath($this->root));
         }
+        confgen($this->domain, realpath($this->root));
+        echo "Configurations files generated successfully".PHP_EOL;
+        echo "adding $this->domain to /etc/hosts file".PHP_EOL;
         writeHost($this->domain);
-        $name = ($this->ssl == "true") ? $this->domain : $this->domain.'-ssl';
+        echo "VirtualHost created successfully".PHP_EOL;
+    }
+    public function remove() {
+        if(in_array($this->ssl, ["true", "True"])) {
+            if(file_exists("/etc/a2vhost/ssl/certs/$this->domain.crt")) {
+                unlink("/etc/a2vhost/ssl/certs/$this->domain.crt");
+            }
+            if(file_exists("/etc/a2vhost/ssl/keys/$this->domain.key")) {
+                unlink("/etc/a2vhost/ssl/keys/$this->domain.key");
+            }
+            if(file_exists("/etc/a2vhost/sites-available/$this->domain-ssl.conf")) {
+                unlink("/etc/a2vhost/sites-available/$this->domain-ssl.conf");
+            }
+        }
+        if(file_exists("/etc/a2vhost/sites-available/$this->domain.conf")) {
+            unlink("/etc/a2vhost/sites-available/$this->domain.conf");
+        }
+        if(file_exists($this->root)) {
+            rmdir($this->root);
+        }
+        shell_exec("if grep -q '$this->domain' /etc/hosts; then sudo sed -i '/$this->domain/d' /etc/hosts; fi");
+        echo "VirtualHost removed successfully".PHP_EOL;
     }
 }
  
-if (requiredInput($argv)) {
-    if (in_array("--help", $argv) || in_array("-h", $argv)) {
-        help();
+function main($argument) {
+    if (requiredInput($argument)) {
+        if (in_array("--help", $argument) || in_array("-h", $argument)) {
+            help();
+        } else if (in_array("--remove", $argument) || in_array("-r", $argument)) {
+            $opt = getOption($argument);
+            $vhost = new vhost($opt["ssl"], $opt["root"], $opt["domain"]);
+            $vhost->remove();
+        } else {
+            $opt = getOption($argument);
+            $vhost = new vhost($opt["ssl"], $opt["root"], $opt["domain"]);
+            $vhost->gen();
+            echo "Operation Complete. Restarting apache2 ...".PHP_EOL;
+            shell_exec("sudo systemctl reload apache2");
+            echo "Done! Thanks for using!".PHP_EOL;
+        }
     } else {
-        $opt = getOption($argv);
-        $vhost = new vhost($opt["ssl"], $opt["root"], $opt["domain"]);
-        $vhost->gen();
+        help();
     }
-} else {
-    help();
 }
 
-/* assets function start heer */
+/* assets function start here */
 function help() {
     showBanner();
     showUsage();
@@ -118,11 +167,12 @@ function run($cmd) {
 
 function writeHost($domain) {
     $file = fopen('/etc/hosts', 'a+');
-    $exist = shell_exec("if grep -q '$domain /etc/hosts; then echo 'true' else 'false' fi");
-    if($exist == "false") {
+    $exist = shell_exec("if grep -q '$domain' /etc/hosts; then echo \"true\"; else echo \"false\"; fi");
+    
+    if(trim($exist) == "false") {
         fwrite($file, "127.0.0.1       $domain\n");
     } else {
-        // do nothing
+        // nothing
     }
 }
 
@@ -331,7 +381,7 @@ function showBanner() {
   /_/    \_\____|  \/   |_|  |_|\___/|___/\__|
                                             '.PHP_EOL;
     echo '  Virtual Host Generator for Apache2'.PHP_EOL;
-    echo '  a2vhost 1.0.0 b - (c) Hein Thanth'.PHP_EOL;
+    echo '  a2vhost 1.0.1 - (c) Hein Thanth'.PHP_EOL;
     echo '  https://github.com/heinthanth/a2vhost'.PHP_EOL;
     echo PHP_EOL;
 }
@@ -340,6 +390,7 @@ function showUsage() {
     echo "  Usage: a2vhost [ -options ]".PHP_EOL.PHP_EOL;
     echo "  Example: a2vhost --ssl=true --root=/var/www/demo --domain=demo.local".PHP_EOL.PHP_EOL;
     echo "  Common Option:".PHP_EOL;
+    echo "      --remove :  add this option to remove virtualhost".PHP_EOL;
     echo "      --ssl    :  generate configuration for ssl-enabled vhost".PHP_EOL;
     echo "      --root   :  configure document root of vhost".PHP_EOL;
     echo "      --domain :  configure virtual domain name of vhost".PHP_EOL;
